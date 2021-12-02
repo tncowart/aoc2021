@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use crate::utils::*;
 
-pub fn day1(window: usize) -> i32 {
+pub fn _day1(window: usize) -> i32 {
     let mut increases = 0;
 
     let mut queue: VecDeque<i32> = VecDeque::with_capacity(window + 1);
@@ -36,10 +36,7 @@ pub fn day1_short(window: usize) -> usize {
         .count()
 }
 
-pub fn day1_1() {
-    println!("Day 01.1: {}", day1(1));
-}
-
-pub fn day1_2() {
-    println!("Day 01.2: {}", day1(3));
+pub fn day1() {
+    println!("Day 01.1: {}", _day1(1));
+    println!("Day 01.2: {}", _day1(3));
 }
