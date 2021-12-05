@@ -1,13 +1,10 @@
-use crate::utils::*;
-
 fn _day2() -> (i32, i32) {
     let mut vert = 0;
     let mut horiz = 0;
     let mut aim = 0;
 
-    for line in lines("resources/day2.txt") {
-        let line = line.unwrap();
-        let vec: Vec<&str> = line.as_str().split_whitespace().collect();
+    for line in include_str!("../resources/day2.txt").lines() {
+        let vec: Vec<&str> = line.split_whitespace().collect();
         let direction = vec[0];
         let dist = vec[1].trim().parse::<i32>().unwrap();
 

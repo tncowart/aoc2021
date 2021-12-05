@@ -1,13 +1,14 @@
 use std::collections::VecDeque;
 
-use crate::utils::*;
-
 pub fn _day1(window: usize) -> i32 {
     let mut increases = 0;
 
     let mut queue: VecDeque<i32> = VecDeque::with_capacity(window + 1);
 
-    for num in lines("resources/day1.txt").map(|l| l.unwrap().parse::<i32>().unwrap()) {
+    for num in include_str!("../resources/day1.txt")
+        .lines()
+        .map(|l| l.parse::<i32>().unwrap())
+    {
         queue.push_back(num);
         if queue.len() <= window {
             // Loading up the queue with the initial values
@@ -27,14 +28,15 @@ pub fn _day1(window: usize) -> i32 {
     increases
 }
 
-pub fn day1_short(window: usize) -> usize {
-    lines("resources/day1.txt")
-        .map(|l| l.unwrap().parse::<i32>().unwrap())
-        .collect::<Vec<i32>>()
-        .windows(window + 1)
-        .filter(|num| num[window] > num[0])
-        .count()
-}
+// pub fn day1_short(window: usize) -> usize {
+//     include_str!("../resources/day1.txt")
+//     .lines()
+//     .map(|l| l.parse::<i32>().unwrap())
+//     .collect::<Vec<i32>>()
+//     .array_windows()
+//     .filter(|[x, _, _, y ]| x < y)
+//     .count()
+// }
 
 pub fn day1() {
     println!("Day 01.1: {}", _day1(1));
