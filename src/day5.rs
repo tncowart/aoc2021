@@ -5,21 +5,17 @@ fn parse_line(line: &str) -> Vec<i32> {
     line.split(" -> ").map(|x| x.split(',').map(|y| y.parse::<i32>().unwrap())).flatten().collect()
 }
 
-fn update_board(board: &mut Vec<u32>, x: usize, y: usize) {
-    board[y * BOARD_WIDTH + x] += 1;
-}
-
 fn draw_line(board: &mut Vec<u32>, line: Vec<i32>) {
     let x_change = (line[2] - line[0]).clamp(-1, 1);
     let y_change = (line[3] - line[1]).clamp(-1, 1);
     let mut x = line[0];
     let mut y = line[1];
-    while !(x == line[2] && y == line[3]) {
-        update_board(board, x as usize, y as usize);
+    while x != line[2] || y != line[3] {
+        board[y as usize * BOARD_WIDTH + x as usize] += 1;
         x += x_change;
         y += y_change;
     }
-    update_board(board, x as usize, y as usize);
+    board[y as usize * BOARD_WIDTH + x as usize] += 1;
 }
 
 pub fn day5() {
