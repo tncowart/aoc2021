@@ -1,64 +1,48 @@
+fn calc_chunks(line: &str) -> (Vec<char>, bool, Option<char>) {
+    let mut stack = Vec::<char>::new();
+    let mut valid = true;
+    let mut value: Option<char> = None;
+    for c in line.chars() {
+        if ['{', '(', '[', '<'].contains(&c) {
+            stack.push(c);
+        } else if ['}', ')', ']', '>'].contains(&c) {
+            value = Some(c);
+            valid = matches!(
+                (stack.pop(), c),
+                (Some('['), ']')
+                    | (Some('{'), '}')
+                    | (Some('<'), '>')
+                    | (Some('('), ')')
+                    | (None, _)
+            );
+            if !valid {
+                break;
+            }
+        }
+    }
+    (stack, valid, value)
+}
+
 pub fn day10() {
     let p1: u32 = include_str!("../resources/day10.txt")
         .lines()
-        .map(|line| {
-            let mut stack = Vec::<char>::new();
-            let mut error = ' ';
-            for c in line.chars() {
-                if ['{', '(', '[', '<'].contains(&c) {
-                    stack.push(c);
-                } else if ['}', ')', ']', '>'].contains(&c) {
-                    error = match (stack.pop(), c) {
-                        (Some('['), ']')
-                        | (Some('{'), '}')
-                        | (Some('<'), '>')
-                        | (Some('('), ')')
-                        | (None, _) => ' ',
-                        _ => c,
-                    };
-                    if error != ' ' {
-                        break;
-                    }
-                }
-            }
-            error
-        })
-        .map(|c| match c {
-            ')' => 3,
-            ']' => 57,
-            '}' => 1197,
-            '>' => 25137,
+        .map(calc_chunks)
+        .filter(|s| !s.1)
+        .map(|s| match s.2 {
+            Some(')') => 3,
+            Some(']') => 57,
+            Some('}') => 1197,
+            Some('>') => 25137,
             _ => 0,
         })
         .sum();
 
     let mut p2: Vec<u64> = include_str!("../resources/day10.txt")
         .lines()
-        .map(|line| {
-            let mut stack = Vec::<char>::new();
-            let mut valid = true;
-            for c in line.chars() {
-                if ['{', '(', '[', '<'].contains(&c) {
-                    stack.push(c);
-                } else if ['}', ')', ']', '>'].contains(&c) {
-                    valid &= matches!(
-                        (stack.pop(), c),
-                        (Some('['), ']')
-                            | (Some('{'), '}')
-                            | (Some('<'), '>')
-                            | (Some('('), ')')
-                            | (None, _)
-                    );
-                }
-            }
-            if !valid {
-                stack.clear()
-            }
-            stack
-        })
-        .filter(|s| !s.is_empty())
+        .map(calc_chunks)
+        .filter(|s| s.1)
         .map(|s| {
-            s.iter().rev().fold(0, |acc, v| {
+            s.0.iter().rev().fold(0, |acc, v| {
                 acc * 5
                     + match v {
                         '(' => 1,
