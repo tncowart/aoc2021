@@ -22,7 +22,7 @@ fn numset2num(numset: HashSet<char>) -> u32 {
     } else if numset == HashSet::from(['a', 'b', 'c', 'd', 'f', 'g']) {
         9
     } else {
-        u32::MAX
+        u32::MAX // Just return something
     }
 }
 
