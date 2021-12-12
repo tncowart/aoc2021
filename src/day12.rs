@@ -11,7 +11,7 @@ fn visit_caves<'a>(
     path: &Vec<&'a str>,
     double: Option<&str>,
 ) -> Vec<Vec<&'a str>> {
-    let to_visit = caves[node].difference(visited).collect::<HashSet<_>>();
+    let to_visit = &caves[node] - visited;
     let mut v = visited.clone();
     if is_lower(node) && Some(node) != double {
         v.insert(node);
@@ -25,9 +25,7 @@ fn visit_caves<'a>(
         Vec::new()
     } else {
         to_visit.iter().fold(Vec::new(), |mut acc, n| {
-            for pa in visit_caves(n, caves, &v, &p, double) {
-                acc.push(pa)
-            }
+            acc.extend(visit_caves(n, caves, &v, &p, double));
             acc
         })
     }
@@ -37,19 +35,10 @@ pub fn day12() {
     let caves = include_str!("../resources/day12.txt")
         .lines()
         .filter(|l| !(*l).is_empty())
-        .map(|l| l.split('-'))
-        .fold(HashMap::<&str, HashSet<&str>>::new(), |mut acc, l| {
-            let rooms: Vec<&str> = l.collect();
-            if let Some(connections) = acc.get_mut(rooms[0]) {
-                connections.insert(rooms[1]);
-            } else {
-                acc.insert(rooms[0], HashSet::from([rooms[1]]));
-            }
-            if let Some(connections) = acc.get_mut(rooms[1]) {
-                connections.insert(rooms[0]);
-            } else {
-                acc.insert(rooms[1], HashSet::from([rooms[0]]));
-            }
+        .map(|l| l.split_once('-').unwrap())
+        .fold(HashMap::<&str, HashSet<&str>>::new(), |mut acc, (ra, rb)| {
+            acc.entry(ra).or_insert_with(HashSet::new).insert(rb);
+            acc.entry(rb).or_insert_with(HashSet::new).insert(ra);
             acc
         });
 
@@ -71,15 +60,13 @@ pub fn day12() {
             .keys()
             .filter(|k| is_lower(k) && **k != "end" && **k != "start")
             .fold(HashSet::new(), |mut acc, k| {
-                for p in visit_caves(
+                acc.extend(visit_caves(
                     "start",
                     &caves,
                     &HashSet::from(["start"]),
                     &Vec::new(),
                     Some(k),
-                ) {
-                    acc.insert(p);
-                }
+                ));
                 acc
             })
             .len()
