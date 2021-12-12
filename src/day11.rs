@@ -9,7 +9,7 @@ fn spread_flashes(board: &mut Vec<u32>) {
         flashed_count = 0;
         for pos in 0..board.len() {
             if board[pos] < 10 || flashed.contains(&pos) {
-                continue
+                continue;
             }
             flashed_count += 1;
             flashed.insert(pos);
@@ -48,27 +48,31 @@ fn spread_flashes(board: &mut Vec<u32>) {
         }
     }
 
-    for pos in flashed {
-        board[pos] = 0;
-    }
+    flashed.iter().for_each(|pos| board[*pos] = 0);
 }
 
 pub fn day11() {
-    let mut board: Vec<u32> = include_str!("../resources/day11.txt").chars().map(|c| c.to_digit(10)).flatten().collect();
+    let mut board: Vec<u32> = include_str!("../resources/day11.txt")
+        .chars()
+        .map(|c| c.to_digit(10))
+        .flatten()
+        .collect();
+    let mut board2 = board.clone();
 
-    let p1: usize = (0..100).map(|_i| {
-        (0..board.len()).for_each(|i| board[i] += 1); // increase energy by one
-        spread_flashes(&mut board);
-        board.iter().filter(|i| **i == 0).count()
-    }).sum();
+    let p1: usize = (0..100)
+        .map(|_i| {
+            board.iter_mut().for_each(|i| *i += 1); // increase energy by one
+            spread_flashes(&mut board);
+            board.iter().filter(|i| **i == 0).count()
+        })
+        .sum();
     println!("Day 11.1: {}", p1);
 
-    board = include_str!("../resources/day11.txt").chars().map(|c| c.to_digit(10)).flatten().collect();
     let mut step = 0;
-    while board.iter().filter(|i| **i == 0).count() != board.len() {
+    while board2.iter().filter(|i| **i == 0).count() != board2.len() {
         step += 1;
-        (0..board.len()).for_each(|i| board[i] += 1); // increase energy by one
-        spread_flashes(&mut board);
+        board2.iter_mut().for_each(|i| *i += 1); // increase energy by one
+        spread_flashes(&mut board2);
     }
     println!("Day 11.2: {}", step);
 }
