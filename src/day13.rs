@@ -1,6 +1,42 @@
 use std::collections::HashSet;
 use std::iter::FromIterator;
 
+fn fold_directions(l: &str) -> (&str, usize) {
+    let (axis, coord) = l.split_once("=").unwrap();
+    (axis, coord.parse::<usize>().unwrap())
+}
+
+fn fold(paper: &mut Vec<(usize, usize)>, axis: &str, coord: usize) {
+    match axis {
+        "fold along x" => {
+            for v in paper.iter_mut().filter(|(x, _)| *x > coord) {
+                v.0 = (coord << 1) - v.0;
+            }
+        },
+        "fold along y" => {
+            for v in paper.iter_mut().filter(|(_, y)| *y > coord) {
+                v.1 = (coord << 1) - v.1;
+            }
+        },
+        _ => unreachable!()
+    };
+}
+
+fn print(paper: &[(usize, usize)]) {
+    let mut print_paper = [["."; 6]; 40];
+    for (x, y) in paper {
+        print_paper[*x][*y] = "#";
+    }
+
+    for y in 0..6 {
+        for x in print_paper {
+            print!("{}", x[y]);
+        }
+        println!()
+    }
+    println!();
+}
+
 pub fn day13() {
     let (coords, folds) = include_str!("../resources/day13.txt").split_once("\n\n").unwrap();
     let mut paper = coords.lines().map(|l| {
@@ -8,62 +44,14 @@ pub fn day13() {
         (x.parse::<usize>().unwrap(), y.parse::<usize>().unwrap())
     }).collect::<Vec<(usize, usize)>>();
 
-    folds.lines().take(1).for_each(|l| {
-        let (axis, coord) = l.split_once("=").unwrap();
-        let coord = coord.parse::<usize>().unwrap();
-        match axis {
-            "fold along x" => {
-                for v in paper.iter_mut() {
-                    if v.0 > coord {
-                        v.0 = coord - (v.0 - coord);
-                    }
-                }
-            },
-            "fold along y" => {
-                for v in paper.iter_mut() {
-                    println!("v1: {}, coord: {}", v.1, coord);
-                    if v.1 > coord {
-                        v.1 = coord - (v.1 - coord);
-                    }
-                }
-            },
-            _ => unreachable!()
-        };
+    folds.lines().take(1).map(fold_directions).for_each(|(axis, coord)| {
+        fold(&mut paper, axis, coord)
     });
     println!("Day 13.1: {}", HashSet::<&(usize, usize)>::from_iter(&paper).len());
 
-    folds.lines().skip(1).for_each(|l| {
-        let (axis, coord) = l.split_once("=").unwrap();
-        let coord = coord.parse::<usize>().unwrap();
-        match axis {
-            "fold along x" => {
-                for v in paper.iter_mut() {
-                    if v.0 > coord {
-                        v.0 = coord - (v.0 - coord);
-                    }
-                }
-            },
-            "fold along y" => {
-                for v in paper.iter_mut() {
-                    if v.1 > coord {
-                        v.1 = coord - (v.1 - coord);
-                    }
-                }
-            },
-            _ => unreachable!()
-        };
+    folds.lines().skip(1).map(fold_directions).for_each(|(axis, coord)| {
+        fold(&mut paper, axis, coord)
     });
-
-    let mut print_paper = [["."; 12]; 80];
-    for (x, y) in paper {
-        print_paper[x][y] = "#";
-    }
-
-    for y in 0..12 {
-        for x in print_paper {
-            print!("{}", x[y]);
-        }
-        println!()
-    }
-    println!();
+    println!("Day 13.2:");
+    print(&paper);
 }
