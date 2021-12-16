@@ -1,44 +1,54 @@
 use std::collections::HashMap;
 pub fn day14() {
     let (poly_template, insert_rules_string) = include_str!("../resources/day14.txt").split_once("\n\n").unwrap();
-    let insert_rules: HashMap<&[u8], [u8; 2]> = insert_rules_string.lines().fold(HashMap::new(), |mut acc, l| {
+    let insert_rules: HashMap<String, u8> = insert_rules_string.lines().fold(HashMap::new(), |mut acc, l| {
         let (key, val) = l.split_once(" -> ").unwrap();
-        let key = key.as_bytes();
-        let val = val.as_bytes();
-        acc.insert(key, [key[0], val[0]]);
+        acc.insert(key.to_string(), val.as_bytes()[0]);
         acc
     });
-    // let pair_counts: HashMap<&[u8], u64> = insert_rules_string.lines().fold(HashMap::new(), |mut acc, l| {
-    //     let (key, _) = l.split_once(" -> ").unwrap();
-    //     let key = key.as_bytes();
-    //     acc.insert(key, 0);
-    //     acc
-    // });
-    // println!("{}", poly_template);
-    let mut poly = (0..10).fold(Vec::<u8>::from(poly_template.trim().as_bytes()), |acc, _| {
-        let mut new_template = Vec::<u8>::with_capacity((acc.len() << 1) - 1);
-        for i in 0..(acc.len() - 1) {
-            new_template.extend(insert_rules[&acc[i..=i+1]]);
-        }
-        new_template.push(*acc.last().unwrap());
-        new_template
+    let pair_counts_blank: HashMap<String, u64> = insert_rules_string.lines().fold(HashMap::new(), |mut acc, l| {
+        acc.insert(l.split_once(" -> ").unwrap().0.to_string(), 0);
+        acc
     });
-    // println!("{:?}", std::str::from_utf8(&poly_template));
-    poly.sort_unstable();
-    let (max, min) = poly.group_by(|a, b| a == b).fold((0, usize::MAX), |(max, min), group| (max.max(group.len()), min.min(group.len())));
+    let mut letter_counts: HashMap<u8, u64> = poly_template.bytes().fold(HashMap::new(), |mut acc, b| {
+        acc.entry(b).and_modify(|e| *e += 1).or_insert(1);
+        acc
+    });
+    let poly_template = poly_template.trim();
+    let mut new_pair_counts = pair_counts_blank.clone();
+    for i in 0..(poly_template.len() - 1) {
+        new_pair_counts.entry(poly_template[i..=i+1].to_string()).and_modify(|e| { *e += 1 });
+    }
+
+    let pair_counts = (0..10).fold(new_pair_counts, |acc, _| {
+        let mut new_pair_counts = pair_counts_blank.clone();
+        for key in acc.keys() {
+            let key_count = acc[key];
+            let (k1, k2) = (vec![key.as_bytes()[0], insert_rules[key]], vec![insert_rules[key], key.as_bytes()[1]]);
+            new_pair_counts.entry(String::from_utf8(k1).unwrap()).and_modify(|e| *e += key_count);
+            new_pair_counts.entry(String::from_utf8(k2).unwrap()).and_modify(|e| *e += key_count);
+            letter_counts.entry(insert_rules[key]).and_modify(|e| *e += key_count).or_insert(0);
+        }
+        new_pair_counts
+    });
+
+    let (max, min) = letter_counts.values().fold((0, u64::MAX), |(max, min), count| (max.max(*count), min.min(*count)));
 
     println!("Day 14.1: {}", max - min);
 
-    let mut poly = (0..40).fold(Vec::<u8>::from(poly_template.trim().as_bytes()), |acc, _| {
-        let mut new_template = Vec::<u8>::with_capacity((acc.len() << 1) - 1);
-        for i in 0..(acc.len() - 1) {
-            new_template.extend(insert_rules[&acc[i..=i+1]]);
+    (0..30).fold(pair_counts, |acc, _| {
+        let mut new_pair_counts = pair_counts_blank.clone();
+        for key in acc.keys() {
+            let key_count = acc[key];
+            let (k1, k2) = (vec![key.as_bytes()[0], insert_rules[key]], vec![insert_rules[key], key.as_bytes()[1]]);
+            new_pair_counts.entry(String::from_utf8(k1).unwrap()).and_modify(|e| *e += key_count);
+            new_pair_counts.entry(String::from_utf8(k2).unwrap()).and_modify(|e| *e += key_count);
+            letter_counts.entry(insert_rules[key]).and_modify(|e| *e += key_count).or_insert(0);
         }
-        new_template.push(*acc.last().unwrap());
-        new_template
+        new_pair_counts
     });
 
-    poly.sort_unstable();
-    let (max, min) = poly.group_by(|a, b| a == b).fold((0, usize::MAX), |(max, min), group| (max.max(group.len()), min.min(group.len())));
+    let (max, min) = letter_counts.values().fold((0, u64::MAX), |(max, min), count| (max.max(*count), min.min(*count)));
+
     println!("Day 14.2: {}", max - min);
 }
